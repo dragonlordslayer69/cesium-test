@@ -1,8 +1,35 @@
-body{
-    padding:0%;
-    margin:0 auto;
+body {
+    padding: 0%;
+    margin: 0 auto;
 }
+
 .fullSize {
     width: 100%;
-    height:100%;
+    height: 100%;
+}
+
+.loader-container {
+    width: 100%;
+    height: 100vh;
+    background-color: #000000;
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid;
+    color: #1F35FF;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: loader 1.2s linear infinite;
+}
+
+@keyframes loader {
+    to {
+        transform: rotate(360deg);
+    }
 }
