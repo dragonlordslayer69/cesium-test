@@ -4,19 +4,16 @@ const fs = require('fs'),
 
 const orbitals = fs.readFileSync(path.join(__dirname, 'catalog.txt'), { encoding: 'utf8', flag: 'r' });
 
-console.log(orbitals);
-
 let arr = [];
 let orbitalsArr = orbitals.split('\n'),
     length = orbitalsArr.length;
 
-for (let i = 0; i < x - 1; i += 3) {
-
-    console.log(i);
-    arr.push({
-        id: orbitalsArr[i],
-
-    })
+for (let i = 0; i < length - 1; i += 3) {
+    const satrec = satellite.twoline2satrec(
+        orbitalsArr[i + 1].trim(),
+        orbitalsArr[i + 2].trim()
+    );
+    arr.push(satrec)
 }
 
-console.log(arr[5].i);
+console.log(arr.length);

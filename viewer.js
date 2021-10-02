@@ -1,29 +1,32 @@
-const totalSeconds = 60 * 60 * 24;
+const totalSeconds = 60;
 const timestepInSeconds = 10;
 const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
 
 function getData() {
     let satelliteArr = [];
-    let allText = "a";
+    let orbitals = "";
     let rawFile = new XMLHttpRequest();
-    rawFile.open("GET", "./data.txt", false);
+    rawFile.open("GET", "./catalog.txt", false);
     rawFile.onreadystatechange = function() {
         if (rawFile.readyState === 4) {
             if (rawFile.status === 200 || rawFile.status == 0) {
-                allText = rawFile.responseText.toString();
+                orbitals = rawFile.responseText.toString();
             }
         }
     }
     rawFile.send(null)
-    for (let i = 0; i < allText.split('\n').length - 1; i += 3) {
+
+    let orbitalsArr = orbitals.split('\n'),
+        length = orbitalsArr.length;
+
+    for (let i = 0; i < length - 1; i += 3) {
         const satrec = satellite.twoline2satrec(
-            allText.split('\n')[i + 1].trim(),
-            allText.split('\n')[i + 2].trim()
+            orbitalsArr[i + 1].trim(),
+            orbitalsArr[i + 2].trim()
         );
         satelliteArr.push(satrec)
     }
-    // console.log(satelliteArr);
 
     return satelliteArr;
 }
@@ -57,13 +60,13 @@ function addToViewer(satrec) {
 
         const position = Cesium.Cartesian3.fromRadians(p.longitude, p.latitude, p.height * 1000);
         positionsOverTime.addSample(time, position);
+        console.log(i);
     }
 
     const satellitePoint = viewer.entities.add({
         position: positionsOverTime,
         point: { pixelSize: 5, color: Cesium.Color.RED }
     });
-    console.log(viewer.entities)
     return satellitePoint;
 }
 
