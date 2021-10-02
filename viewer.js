@@ -1,21 +1,13 @@
-const totalSeconds = 60;
+const totalSeconds = 60 * 60;
 const timestepInSeconds = 10;
 const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
 
-function getData() {
+async function getData() {
     let satelliteArr = [];
-    let orbitals = "";
-    let rawFile = new XMLHttpRequest();
-    rawFile.open("GET", "./catalog.txt", false);
-    rawFile.onreadystatechange = function() {
-        if (rawFile.readyState === 4) {
-            if (rawFile.status === 200 || rawFile.status == 0) {
-                orbitals = rawFile.responseText.toString();
-            }
-        }
-    }
-    rawFile.send(null)
+    const res = await fetch('https://us-central1-stars-5145f.cloudfunctions.net/app/catalog');
+    let orbitals = await res.text();
+    console.log(orbitals);
 
     let orbitalsArr = orbitals.split('\n'),
         length = orbitalsArr.length;
@@ -31,7 +23,7 @@ function getData() {
     return satelliteArr;
 }
 
-function loadViewer() {
+async function loadViewer() {
     const viewer = new Cesium.Viewer('cesiumContainer', {
         imageryProvider: new Cesium.TileMapServiceImageryProvider({
             url: Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
@@ -47,7 +39,7 @@ function loadViewer() {
     return viewer;
 }
 
-function addToViewer(satrec) {
+function addToViewer(satrec, viewer) {
     let positionsOverTime = new Cesium.SampledPositionProperty();
 
     for (let i = 0; i < totalSeconds; i += timestepInSeconds) {
