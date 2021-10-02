@@ -1,7 +1,9 @@
 const totalSeconds = 60 * 60 * 1.5;
-const timestepInSeconds = 240;
+const timestepInSeconds = 300;
 const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
+const startTime = Cesium.JulianDate.addSeconds(start, -totalSeconds, new Cesium.JulianDate());
+const endTime = Cesium.JulianDate.addSeconds(start, totalSeconds - 600, new Cesium.JulianDate());
 
 async function getData() {
     let satelliteArr = [];
@@ -24,25 +26,40 @@ async function getData() {
 }
 
 async function loadViewer() {
+    const clock = new Cesium.Clock({
+        startTime: startTime,
+        stopTime: endTime,
+        currentTime: start,
+        clockRange: Cesium.ClockRange.CLAMPED, // loop when we hit the end time
+      });
+    
+    const clockViewModel = new Cesium.ClockViewModel(clock);
+
     const viewer = new Cesium.Viewer('cesiumContainer', {
         imageryProvider: new Cesium.TileMapServiceImageryProvider({
             url: Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
         }),
         baseLayerPicker: false,
         geocoder: false,
-        homeButton: false,
+        homeButton: true,
         infoBox: false,
-        navigationHelpButton: false,
-        sceneModePicker: false
+        navigationHelpButton: true,
+        sceneModePicker: false,
+        clockViewModel
     });
 
     return viewer;
 }
 
+function loadTimeline(timeline) {
+    timeline.zoomTo(startTime, endTime)
+    return timeline;
+}
+
 function addToViewer(satrec, viewer) {
     let positionsOverTime = new Cesium.SampledPositionProperty();
 
-    for (let i = 0; i < totalSeconds; i += timestepInSeconds) {
+    for (let i = -totalSeconds; i < totalSeconds; i += timestepInSeconds) {
         const time = Cesium.JulianDate.addSeconds(start, i, new Cesium.JulianDate());
         const jsDate = Cesium.JulianDate.toDate(time);
 
@@ -78,6 +95,8 @@ async function propogate() {
     const satArr = await getData();
 
     let viewer = await loadViewer();
+
+    let timeline = await loadTimeline(viewer.timeline);
 
     for (let i = 0; i < satArr.length; i++) {
         addToViewer(satArr[i], viewer);
