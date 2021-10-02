@@ -1,5 +1,5 @@
-const totalSeconds = 60 * 60;
-const timestepInSeconds = 10;
+const totalSeconds = 60 * 60 * 1.5;
+const timestepInSeconds = 240;
 const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
 
@@ -57,7 +57,7 @@ function addToViewer(satrec, viewer) {
 
     const satellitePoint = viewer.entities.add({
         position: positionsOverTime,
-        point: { pixelSize: 5, color: Cesium.Color.RED }
+        point: { pixelSize: 1, color: Cesium.Color.RED }
     });
     return satellitePoint;
 }
@@ -72,4 +72,14 @@ function addOnClickSatelliteEvent(_satelliteElement) {
         var tleIndex = parseInt(this.getAttribute("value"));
         drawOrbit(twoLineElements.slice(tleIndex, tleIndex + 3).join("\n"));
     };
+}
+
+async function propogate() {
+    const satArr = await getData();
+
+    let viewer = await loadViewer();
+
+    for (let i = 0; i < satArr.length; i++) {
+        addToViewer(satArr[i], viewer);
+    }
 }
