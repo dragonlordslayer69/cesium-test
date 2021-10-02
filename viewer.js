@@ -5,7 +5,7 @@ const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.Julian
 
 function getData() {
     let satelliteArr = [];
-    let allText = "mom";
+    let allText = "a";
     let rawFile = new XMLHttpRequest();
     rawFile.open("GET", "./data.txt", false);
     rawFile.onreadystatechange = function() {
@@ -63,6 +63,18 @@ function addToViewer(satrec) {
         position: positionsOverTime,
         point: { pixelSize: 5, color: Cesium.Color.RED }
     });
-
+    console.log(viewer.entities)
     return satellitePoint;
+}
+
+function drawOrbit(_twoLineElement) {
+    orbitPointsDrawer.twoLineElement = _twoLineElement;
+    orbitPolylineDrawer.twoLineElement = _twoLineElement;
+}
+
+function addOnClickSatelliteEvent(_satelliteElement) {
+    _satelliteElement.onclick = function() {
+        var tleIndex = parseInt(this.getAttribute("value"));
+        drawOrbit(twoLineElements.slice(tleIndex, tleIndex + 3).join("\n"));
+    };
 }
