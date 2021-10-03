@@ -2,12 +2,19 @@
 <html lang="en">
 
 <head>
+    <title>
+        stars align visualizer
+    </title>
+    <link rel="icon" type="image/png" href="favicon.png" />
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.81/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.81/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.js"></script>
     <link href="styles.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500&display=swap" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 
 <body>
@@ -15,7 +22,17 @@
         <div class="loader"></div>
         <h2 class="loading-text" id="loading-text" style="color: white">downloading assets...</h1>
     </div>
-    <div id="cesiumContainer" class="fullSize"></div>
+    <div id="cesiumContainer" class="fullSize">
+        <div class="panel" id="panel">
+            <h1> Filter Debris </h1>
+            <input type="checkbox" id="debris-select" name="debris" value="debris-selected">
+            <label for="debris-select" id="debris-label">Debris</label><br>
+            <input type="checkbox" id="payload-select" name="payload" value="payload-selected">
+            <label for="payload-select" id="payload-label">Payload</label><br>
+            <input type="checkbox" id="rocket-body-select" name="rocket-body" value="rocket-body-select">
+            <label for="rocket-body-select" id="rocket-body-label">Rocket Body</label><br>
+        </div>
+    </div>
     <script async src="viewer.js"></script>
     <script async src="main.js"></script>
 </body>

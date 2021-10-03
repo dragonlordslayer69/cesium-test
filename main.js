@@ -7,4 +7,6 @@ window.onload = async() => {
     if (propogate()) {
         document.getElementById("loading-text").innerHTML = "rendering assets..."
     }
+    await sleep(500);
+    document.getElementById("panel").style.display = "block";
 }

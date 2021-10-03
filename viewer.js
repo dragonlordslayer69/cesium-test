@@ -4,19 +4,19 @@ const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
 const startTime = Cesium.JulianDate.addSeconds(start, -totalSeconds, new Cesium.JulianDate());
 const endTime = Cesium.JulianDate.addSeconds(start, totalSeconds - 600, new Cesium.JulianDate());
+let entityArr = [];
 
 async function getData() {
     let satelliteArr = [];
-    const res = await fetch('https://us-central1-stars-5145f.cloudfunctions.net/app/catalog');
-    let orbitals = await res.text();
+    const res = await fetch('https://us-central1-stars-5145f.cloudfunctions.net/app/catalog2');
+    let orbitalsArr = await res.json();
 
-    let orbitalsArr = orbitals.split('\n'),
-        length = orbitalsArr.length;
+    let length = orbitalsArr.length;
 
     for (let i = 0; i < length - 1; i += 3) {
         const satrec = satellite.twoline2satrec(
-            orbitalsArr[i + 1].trim(),
-            orbitalsArr[i + 2].trim()
+            orbitalsArr[i].TLE_LINE1,
+            orbitalsArr[i].TLE_LINE2
         );
         satelliteArr.push(satrec)
     }
@@ -26,7 +26,7 @@ async function getData() {
     };
 }
 
-async function loadViewer() {
+async function loadViewer(satArr) {
     const clock = new Cesium.Clock({
         startTime: startTime,
         stopTime: endTime,
@@ -50,33 +50,31 @@ async function loadViewer() {
         sceneModePicker: false,
         clockViewModel
     });
+    viewer.scene.globe.enableLighting = true;
 
     let latestEntity;
 
     viewer.selectedEntityChanged.addEventListener((entity) => {
         if (entity) {
+            console.log(entity);
             if (latestEntity && latestEntity != entity) {
                 latestEntity.label = undefined;
+                latestEntity.polyline = undefined;
                 latestEntity = entity;
             }
             latestEntity = entity;
             entity.label = {
-                text: `${entity.name}\n${entity.id}`,
-                font: "12px Helvetica",
-                fillColor: Cesium.Color.WHITE,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                showBackground: true,
-                // horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-                // pixelOffset: new Cesium.Cartesian2(0.0, -50),
-                // pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
-                //     1.5e2,
-                //     3.0,
-                //     1.5e7,
-                //     0.5
-                // ),
-            }
+                    text: `${entity.name}\nID: ${entity.id}\n`,
+                    font: "12px Helvetica",
+                    fillColor: Cesium.Color.WHITE,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    showBackground: true,
+                }
+                // let line = drawOrbit(satArr, entity.index, entity); //dragonlordslayer please find out how to get index of entity in satArr
+
         } else {
             latestEntity.label = undefined;
+            latestEntity.polyline = undefined;
         }
 
     });
@@ -89,6 +87,11 @@ function loadTimeline(timeline) {
     return timeline;
 }
 
+function loadPolyLines() {
+    const polylines = new Cesium.PolylineCollection({ show: true });
+    return polylines;
+}
+
 function addToViewer(satrec, viewer, orbArr, i) {
     let positionsOverTime = new Cesium.SampledPositionProperty();
     let satelliteEntity = {};
@@ -98,53 +101,78 @@ function addToViewer(satrec, viewer, orbArr, i) {
         const jsDate = Cesium.JulianDate.toDate(time);
 
         const positionAndVelocity = satellite.propagate(satrec, jsDate);
+        if (Array.isArray(positionAndVelocity)) {
+            break;
+        }
         satelliteEntity.velocity = positionAndVelocity.velocity;
         const gmst = satellite.gstime(jsDate);
+        // console.log(positionAndVelocity.position);
         const p = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
 
         const position = Cesium.Cartesian3.fromRadians(p.longitude, p.latitude, p.height * 1000);
         positionsOverTime.addSample(time, position);
     }
+    entityArr.push(positionsOverTime)
+
+    let orbObj = orbArr[i];
 
     satelliteEntity.position = positionsOverTime;
-    satelliteEntity.point = { pixelSize: 2, color: Cesium.Color.YELLOW };
-    satelliteEntity.name = orbArr[i * 3].trim();
-    satelliteEntity.id = satrec.satnum;
+    if (orbObj.OBJECT_TYPE == 'DEBRIS') {
+        satelliteEntity.point = { pixelSize: 2, color: Cesium.Color.RED };
+    } else if (orbObj.OBJECT_TYPE == 'PAYLOAD') {
+        satelliteEntity.point = { pixelSize: 2, color: Cesium.Color.BLUE };
+    } else {
+        satelliteEntity.point = { pixelSize: 2, color: Cesium.Color.WHITE };
+    }
+    satelliteEntity.name = orbObj.OBJECT_NAME;
+    satelliteEntity.index = i;
+    satelliteEntity.id = orbObj.NORAD_CAT_ID;
+    satelliteEntity.period = orbObj.PERIOD;
+    satelliteEntity.inclination = orbObj.INCLIINATION;
+    satelliteEntity.eccentricity = orbObj.ECCENTRICITY;
+    satelliteEntity.meanMotion = orbObj.MEAN_MOTION;
+    satelliteEntity.semiMajorAxis = orbObj.SEMIMAJOR_AXIS;
 
     const satellitePoint = viewer.entities.add(satelliteEntity);
     return satellitePoint;
 }
 
-async function drawOrbit(viewer, orbitalsArr) {
-    let tle1 = orbitalsArr[1];
-    let tle2 = orbitalsArr[2];
-    console.log(viewer.entities);
+function drawOrbit(satArr, index, entity) {
+    let meanMotion = satArr[index]['mo'];
+    let period = 60 * 2 * Math.PI / meanMotion;
+    let positionArrSampled = [];
+    let positionArr = [];
 
-    let line = viewer.entities.add({
-        name: "Orange line with black outline at height and following the surface",
-        polyline: {
-            positions: Cesium.Cartesian3.fromDegreesArrayHeights([-75,
-                39,
-                250000, -125,
-                39,
-                250000,
-            ]),
-            width: 5,
-            material: new Cesium.PolylineOutlineMaterialProperty({
-                color: Cesium.Color.ORANGE,
-                outlineWidth: 2,
-                outlineColor: Cesium.Color.BLACK,
-            }),
-        },
-    });
+    for (let i = 0; i < period * 1000; i += 600) {
+        const time = Cesium.JulianDate.addSeconds(start, i, new Cesium.JulianDate());
+        const jsDate = Cesium.JulianDate.toDate(time);
+        let positionsOverTime = satellite.propagate(satArr[index], jsDate);
 
-    return line;
+        positionArrSampled.push(positionsOverTime.position)
+
+    }
+
+    for (let i = 0; i < positionArrSampled.length; i++) {
+        console.log(positionArrSampled[i]);
+        let cart = new Cesium.Cartesian3(positionArrSampled[i]['x'] * 1000, positionArrSampled[i]['y'] * 1000, positionArrSampled[i]['z'] * 1000)
+        positionArr.push(cart);
+    }
+
+    console.log(positionArr);
+
+    return entity.polyline = {
+        positions: positionArr,
+        width: 1,
+        material: Cesium.Color.RED,
+    }
 }
 
 async function propogate() {
     const { satArr, orbArr } = await getData();
 
-    let viewer = await loadViewer();
+    let viewer = await loadViewer(satArr);
+
+    let polylines = loadPolyLines();
 
     let timeline = await loadTimeline(viewer.timeline);
 
