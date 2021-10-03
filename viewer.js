@@ -115,16 +115,30 @@ function addToViewer(satrec, viewer, orbArr, i) {
     return satellitePoint;
 }
 
-function drawOrbit(_twoLineElement) {
-    orbitPointsDrawer.twoLineElement = _twoLineElement;
-    orbitPolylineDrawer.twoLineElement = _twoLineElement;
-}
+async function drawOrbit(viewer, orbitalsArr) {
+    let tle1 = orbitalsArr[1];
+    let tle2 = orbitalsArr[2];
+    console.log(viewer.entities);
 
-function addOnClickSatelliteEvent(_satelliteElement) {
-    _satelliteElement.onclick = function() {
-        var tleIndex = parseInt(this.getAttribute("value"));
-        drawOrbit(twoLineElements.slice(tleIndex, tleIndex + 3).join("\n"));
-    };
+    let line = viewer.entities.add({
+        name: "Orange line with black outline at height and following the surface",
+        polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArrayHeights([-75,
+                39,
+                250000, -125,
+                39,
+                250000,
+            ]),
+            width: 5,
+            material: new Cesium.PolylineOutlineMaterialProperty({
+                color: Cesium.Color.ORANGE,
+                outlineWidth: 2,
+                outlineColor: Cesium.Color.BLACK,
+            }),
+        },
+    });
+
+    return line;
 }
 
 async function propogate() {
