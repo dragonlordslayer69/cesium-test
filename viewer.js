@@ -100,4 +100,6 @@ async function propogate() {
     for (let i = 0; i < satArr.length; i++) {
         addToViewer(satArr[i], viewer);
     }
+
+    return true;
 }

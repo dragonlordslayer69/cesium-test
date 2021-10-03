@@ -4,5 +4,7 @@ function sleep(ms) {
 
 window.onload = async() => {
     await sleep(1000);
-    propogate();
+    if (propogate()) {
+        document.getElementById("loading-text").innerHTML = "rendering assets..."
+    }
 }
