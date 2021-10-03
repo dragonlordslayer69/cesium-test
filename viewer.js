@@ -64,7 +64,7 @@ async function loadViewer(satArr) {
             }
             latestEntity = entity;
             entity.label = {
-                    text: `${entity.name}\nID: ${entity.id}\n`,
+                    text: `${entity.name}\nID: ${entity.id}`,
                     font: "12px Helvetica",
                     fillColor: Cesium.Color.WHITE,
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
