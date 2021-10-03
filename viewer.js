@@ -73,7 +73,7 @@ function addToViewer(satrec, viewer) {
 
     const satellitePoint = viewer.entities.add({
         position: positionsOverTime,
-        point: { pixelSize: 2, color: Cesium.Color.GREEN }
+        point: { pixelSize: 2, color: Cesium.Color.YELLOW }
     });
     return satellitePoint;
 }
