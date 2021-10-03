@@ -31,8 +31,10 @@ async function loadViewer() {
         stopTime: endTime,
         currentTime: start,
         clockRange: Cesium.ClockRange.CLAMPED, // loop when we hit the end time
-      });
-    
+        canAnimate: true,
+        shouldAnimate: true,
+    });
+
     const clockViewModel = new Cesium.ClockViewModel(clock);
 
     const viewer = new Cesium.Viewer('cesiumContainer', {
