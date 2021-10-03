@@ -1,4 +1,4 @@
-const totalSeconds = 60 * 60 * 2;
+const totalSeconds = 60 * 60 * 3;
 const timestepInSeconds = 300;
 const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
