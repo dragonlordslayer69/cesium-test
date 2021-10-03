@@ -16,4 +16,4 @@ for (let i = 0; i < length - 1; i += 3) {
     arr.push(satrec)
 }
 
-console.log(arr);
+console.log((arr[2]));

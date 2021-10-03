@@ -20,7 +20,10 @@ async function getData() {
         );
         satelliteArr.push(satrec)
     }
-    return satelliteArr;
+    return {
+        satArr: satelliteArr,
+        orbArr: orbitalsArr
+    };
 }
 
 async function loadViewer() {
@@ -48,6 +51,36 @@ async function loadViewer() {
         clockViewModel
     });
 
+    let latestEntity;
+
+    viewer.selectedEntityChanged.addEventListener((entity) => {
+        if (entity) {
+            if (latestEntity && latestEntity != entity) {
+                latestEntity.label = undefined;
+                latestEntity = entity;
+            }
+            latestEntity = entity;
+            entity.label = {
+                text: `${entity.name}\n${entity.id}`,
+                font: "12px Helvetica",
+                fillColor: Cesium.Color.WHITE,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                showBackground: true,
+                // horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+                // pixelOffset: new Cesium.Cartesian2(0.0, -50),
+                // pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
+                //     1.5e2,
+                //     3.0,
+                //     1.5e7,
+                //     0.5
+                // ),
+            }
+        } else {
+            latestEntity.label = undefined;
+        }
+
+    });
+
     return viewer;
 }
 
@@ -56,14 +89,16 @@ function loadTimeline(timeline) {
     return timeline;
 }
 
-function addToViewer(satrec, viewer) {
+function addToViewer(satrec, viewer, orbArr, i) {
     let positionsOverTime = new Cesium.SampledPositionProperty();
+    let satelliteEntity = {};
 
     for (let i = -totalSeconds; i < totalSeconds; i += timestepInSeconds) {
         const time = Cesium.JulianDate.addSeconds(start, i, new Cesium.JulianDate());
         const jsDate = Cesium.JulianDate.toDate(time);
 
         const positionAndVelocity = satellite.propagate(satrec, jsDate);
+        satelliteEntity.velocity = positionAndVelocity.velocity;
         const gmst = satellite.gstime(jsDate);
         const p = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
 
@@ -71,10 +106,12 @@ function addToViewer(satrec, viewer) {
         positionsOverTime.addSample(time, position);
     }
 
-    const satellitePoint = viewer.entities.add({
-        position: positionsOverTime,
-        point: { pixelSize: 2, color: Cesium.Color.YELLOW }
-    });
+    satelliteEntity.position = positionsOverTime;
+    satelliteEntity.point = { pixelSize: 2, color: Cesium.Color.YELLOW };
+    satelliteEntity.name = orbArr[i * 3].trim();
+    satelliteEntity.id = satrec.satnum;
+
+    const satellitePoint = viewer.entities.add(satelliteEntity);
     return satellitePoint;
 }
 
@@ -91,14 +128,14 @@ function addOnClickSatelliteEvent(_satelliteElement) {
 }
 
 async function propogate() {
-    const satArr = await getData();
+    const { satArr, orbArr } = await getData();
 
     let viewer = await loadViewer();
 
     let timeline = await loadTimeline(viewer.timeline);
 
     for (let i = 0; i < satArr.length; i++) {
-        addToViewer(satArr[i], viewer);
+        addToViewer(satArr[i], viewer, orbArr, i);
     }
 
     return true;
