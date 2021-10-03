@@ -1,4 +1,4 @@
-const totalSeconds = 60 * 60 * 1.5;
+const totalSeconds = 60 * 60 * 2;
 const timestepInSeconds = 300;
 const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
@@ -9,7 +9,6 @@ async function getData() {
     let satelliteArr = [];
     const res = await fetch('https://us-central1-stars-5145f.cloudfunctions.net/app/catalog');
     let orbitals = await res.text();
-    console.log(orbitals);
 
     let orbitalsArr = orbitals.split('\n'),
         length = orbitalsArr.length;
@@ -21,7 +20,6 @@ async function getData() {
         );
         satelliteArr.push(satrec)
     }
-
     return satelliteArr;
 }
 
@@ -71,12 +69,11 @@ function addToViewer(satrec, viewer) {
 
         const position = Cesium.Cartesian3.fromRadians(p.longitude, p.latitude, p.height * 1000);
         positionsOverTime.addSample(time, position);
-        console.log(i);
     }
 
     const satellitePoint = viewer.entities.add({
         position: positionsOverTime,
-        point: { pixelSize: 2, color: Cesium.Color.RED }
+        point: { pixelSize: 2, color: Cesium.Color.GREEN }
     });
     return satellitePoint;
 }

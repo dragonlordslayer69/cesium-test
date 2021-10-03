@@ -2,7 +2,7 @@ const fs = require('fs'),
     path = require('path'),
     satellite = require('satellite.js')
 
-const orbitals = fs.readFileSync(path.join(__dirname, 'catalog.txt'), { encoding: 'utf8', flag: 'r' });
+const orbitals = fs.readFileSync(path.join(__dirname, 'data.txt'), { encoding: 'utf8', flag: 'r' });
 
 let arr = [];
 let orbitalsArr = orbitals.split('\n'),
@@ -16,4 +16,4 @@ for (let i = 0; i < length - 1; i += 3) {
     arr.push(satrec)
 }
 
-console.log(arr.length);
+console.log(arr);
