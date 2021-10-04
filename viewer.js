@@ -126,6 +126,7 @@ function addToViewer(satrec, viewer, orbArr, i) {
     }
     satelliteEntity.name = orbObj.OBJECT_NAME;
     satelliteEntity.index = i;
+    satelliteEntity.objectType = orbObj.OBJECT_TYPE;
     satelliteEntity.id = orbObj.NORAD_CAT_ID;
     satelliteEntity.period = orbObj.PERIOD;
     satelliteEntity.inclination = orbObj.INCLIINATION;
@@ -167,6 +168,34 @@ function drawOrbit(satArr, index, entity) {
     }
 }
 
+async function listenForFilterChange(viewer) {
+    let debris = document.getElementById('debris-select');
+    let payload = document.getElementById('payload-select');
+    let rocketBody = document.getElementById('rocket-body-select');
+
+    debris.addEventListener('change', () => {
+        updateCanvas(viewer, 'DEBRIS', debris.checked);
+    })
+
+    payload.addEventListener('change', () => {
+        updateCanvas(viewer, 'PAYLOAD', payload.checked);
+    })
+
+    rocketBody.addEventListener('change', () => {
+        updateCanvas(viewer, 'ROCKET BODY', rocketBody.checked);
+    })
+}
+
+function updateCanvas(viewer, type, checked) {
+    let entities = viewer.entities.values;
+    for (let i = 0; i < entities.length - 1; i++) {
+        let entity = entities[i];
+        if (entity.objectType == type) {
+            entity.show = checked;
+        }
+    }
+}
+
 async function propogate() {
     const { satArr, orbArr } = await getData();
 
@@ -179,6 +208,8 @@ async function propogate() {
     for (let i = 0; i < satArr.length; i++) {
         addToViewer(satArr[i], viewer, orbArr, i);
     }
+
+    await listenForFilterChange(viewer);
 
     return true;
 }
