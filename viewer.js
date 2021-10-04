@@ -55,6 +55,8 @@ async function loadViewer(satArr) {
     let latestEntity;
 
     viewer.selectedEntityChanged.addEventListener((entity) => {
+        console.log(entity)
+        showInfo(entity);
         if (entity) {
             console.log(entity);
             if (latestEntity && latestEntity != entity) {
@@ -71,6 +73,7 @@ async function loadViewer(satArr) {
                     showBackground: true,
                 }
                 // let line = drawOrbit(satArr, entity.index, entity); //dragonlordslayer please find out how to get index of entity in satArr
+            
 
         } else {
             latestEntity.label = undefined;
@@ -129,7 +132,7 @@ function addToViewer(satrec, viewer, orbArr, i) {
     satelliteEntity.objectType = orbObj.OBJECT_TYPE;
     satelliteEntity.id = orbObj.NORAD_CAT_ID;
     satelliteEntity.period = orbObj.PERIOD;
-    satelliteEntity.inclination = orbObj.INCLIINATION;
+    satelliteEntity.inclination = orbObj.INCLINATION;
     satelliteEntity.eccentricity = orbObj.ECCENTRICITY;
     satelliteEntity.meanMotion = orbObj.MEAN_MOTION;
     satelliteEntity.semiMajorAxis = orbObj.SEMIMAJOR_AXIS;
@@ -138,31 +141,42 @@ function addToViewer(satrec, viewer, orbArr, i) {
     return satellitePoint;
 }
 
-function drawOrbit(satArr, index, entity) {
-    let meanMotion = satArr[index]['mo'];
+function drawOrbit( satArr, index, entity) {
+    let meanMotion = satArr[index]['no'];
     let period = 60 * 2 * Math.PI / meanMotion;
+    console.log(period)
     let positionArrSampled = [];
-    let positionArr = [];
+    let positionsOverTime = new Cesium.SampledPositionProperty()
 
-    for (let i = 0; i < period * 1000; i += 600) {
+    for (let i = 0; i < period; i += 5) {
         const time = Cesium.JulianDate.addSeconds(start, i, new Cesium.JulianDate());
-        const jsDate = Cesium.JulianDate.toDate(time);
-        let positionsOverTime = satellite.propagate(satArr[index], jsDate);
+        // let positionsOverTime = satellite.propagate(satArr[index], jsDate);
+        // console.log(positionsOverTime);
+        let pos = entity.position.getValue(time)
+        if (typeof pos === 'undefined') {
+            console.log(time);
+            break;
+        }
+        //positionsOverTime.addSample(time, pos)
 
-        positionArrSampled.push(positionsOverTime.position)
+        positionArrSampled.push(pos)
 
     }
-
-    for (let i = 0; i < positionArrSampled.length; i++) {
-        console.log(positionArrSampled[i]);
-        let cart = new Cesium.Cartesian3(positionArrSampled[i]['x'] * 1000, positionArrSampled[i]['y'] * 1000, positionArrSampled[i]['z'] * 1000)
-        positionArr.push(cart);
-    }
-
-    console.log(positionArr);
+    console.log(positionArrSampled);
+    // let currentPos = entity.position.getValue(date)
+    // console.log(currentPos);
+    // viewer.entities.add({
+    //     position: currentPos,
+    //     point : { pixelSize: 5, color: Cesium.Color.BLUE }
+    // })  
+    // for (let i = 0; i < positionArrSampled.length; i++) {
+    //     positionArrCart.push(new Cesium.Cartesian3(positionArrSampled[i]['x']*1000, positionArrSampled[i]['y']*1000, positionArrSampled[i]['z']*1000))
+    //     positionArrElements.push(positionArrSampled[i]['x']*1000, positionArrSampled[i]['y']*1000, positionArrSampled[i]['z']*1000)
+    // }
 
     return entity.polyline = {
-        positions: positionArr,
+        positions: positionArrSampled,
+        loop: true,
         width: 1,
         material: Cesium.Color.RED,
     }
@@ -193,6 +207,27 @@ function updateCanvas(viewer, type, checked) {
         if (entity.objectType == type) {
             entity.show = checked;
         }
+    }
+}
+
+function showInfo(entity) {
+    if (entity) {
+        let panel = document.getElementById("right-panel")
+        let {name, id, objectType, period, inclination, eccentricity, meanMotion, semiMajorAxis} = entity
+        panel.innerHTML = `
+        <h1> Debris Information </h1>
+        <div class="info" id = "name"> Name: ${name}</div>
+        <div class="info" id = "norad-id"> NORAD ID: ${id}</div>
+        <div class="info" id = "type"> Type: ${objectType}</div>
+        <div class="info" id = "period"> Period: ${period} min</div>
+        <div class="info" id = "inclination"> Inclination: ${inclination} deg</div>
+        <div class="info" id = "eccentricity"> Eccenctricity: ${eccentricity}</div>
+        <div class="info" id = "mean-motion"> Mean Motion: ${meanMotion} rad/min</div>
+        <div class="info" id = "semi-major-axis"> Semi-Major Axis: ${semiMajorAxis} m</div>`
+        panel.style.display="block";
+    }
+    else {
+        document.getElementById("right-panel").style.display="none";
     }
 }
 

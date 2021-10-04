@@ -51,12 +51,22 @@ body {
     display: none;
     background-color: black;
     overflow: hidden;
+    border: 1px solid #ccc;
+    z-index: 99;
+}
+
+#panel {
     position: absolute;
     top: 35px;
     left: 5px;
     width: 20%;
-    border: 1px solid #ccc;
-    z-index: 99;
+}
+
+#right-panel {
+    position: absolute;
+    top:50px;
+    right: 5px;
+    width: 20%;
 }
 
 input:not([type="image" i]) {
@@ -78,5 +88,9 @@ h1 {
 }
 
 #rocket-body-label {
+    color: white;
+}
+
+.info {
     color: white;
 }
