@@ -1,5 +1,5 @@
 const totalSeconds = 60 * 60 * 3;
-const timestepInSeconds = 300;
+const timestepInSeconds = 150;
 const start = Cesium.JulianDate.fromDate(new Date());
 const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
 const startTime = Cesium.JulianDate.addSeconds(start, -totalSeconds, new Cesium.JulianDate());
@@ -12,6 +12,7 @@ async function getData() {
     let orbitalsArr = await res.json();
 
     let length = orbitalsArr.length;
+    console.log(length);
 
     for (let i = 0; i < length - 1; i += 3) {
         const satrec = satellite.twoline2satrec(
