@@ -48,6 +48,7 @@ async function loadViewer(satArr) {
         infoBox: false,
         navigationHelpButton: true,
         sceneModePicker: false,
+        selectionIndicator: false,
         clockViewModel
     });
     viewer.scene.globe.enableLighting = true;
@@ -55,10 +56,8 @@ async function loadViewer(satArr) {
     let latestEntity;
 
     viewer.selectedEntityChanged.addEventListener((entity) => {
-        console.log(entity)
         showInfo(entity);
         if (entity) {
-            console.log(entity);
             if (latestEntity && latestEntity != entity) {
                 latestEntity.label = undefined;
                 latestEntity.polyline = undefined;
@@ -72,7 +71,7 @@ async function loadViewer(satArr) {
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                     showBackground: true,
                 }
-                // let line = drawOrbit(satArr, entity.index, entity); //dragonlordslayer please find out how to get index of entity in satArr
+            let line = drawOrbit(satArr, entity.index, entity); //dragonlordslayer please find out how to get index of entity in satArr
             
 
         } else {
@@ -142,13 +141,24 @@ function addToViewer(satrec, viewer, orbArr, i) {
 }
 
 function drawOrbit( satArr, index, entity) {
-    let meanMotion = satArr[index]['no'];
-    let period = 60 * 2 * Math.PI / meanMotion;
+    let type = entity.objectType;
+    let color;
+    if (type === "PAYLOAD") {
+        color = Cesium.Color.BLUE
+    }
+    else if (type === 'ROCKET BODY') {
+        color = Cesium.Color.WHITE;
+    }
+    else {
+        color = Cesium.Color.RED;
+    }
+
+    let period = entity.period * 60;
     console.log(period)
     let positionArrSampled = [];
     let positionsOverTime = new Cesium.SampledPositionProperty()
 
-    for (let i = 0; i < period; i += 5) {
+    for (let i = -period; i < period; i += 5) {
         const time = Cesium.JulianDate.addSeconds(start, i, new Cesium.JulianDate());
         // let positionsOverTime = satellite.propagate(satArr[index], jsDate);
         // console.log(positionsOverTime);
@@ -178,7 +188,7 @@ function drawOrbit( satArr, index, entity) {
         positions: positionArrSampled,
         loop: true,
         width: 1,
-        material: Cesium.Color.RED,
+        material: color,
     }
 }
 
@@ -202,7 +212,7 @@ async function listenForFilterChange(viewer) {
 
 function updateCanvas(viewer, type, checked) {
     let entities = viewer.entities.values;
-    for (let i = 0; i < entities.length - 1; i++) {
+    for (let i = 0; i < entities.length; i++) {
         let entity = entities[i];
         if (entity.objectType == type) {
             entity.show = checked;
@@ -215,7 +225,7 @@ function showInfo(entity) {
         let panel = document.getElementById("right-panel")
         let {name, id, objectType, period, inclination, eccentricity, meanMotion, semiMajorAxis} = entity
         panel.innerHTML = `
-        <h1> Debris Information </h1>
+        <h1> Entity Information </h1>
         <div class="info" id = "name"> Name: ${name}</div>
         <div class="info" id = "norad-id"> NORAD ID: ${id}</div>
         <div class="info" id = "type"> Type: ${objectType}</div>
